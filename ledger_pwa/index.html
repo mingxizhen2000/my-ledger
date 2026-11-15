@@ -1,13 +1,242 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#527a62"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="记账"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.png"><title>记账</title><style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#25382c;background:#f7f8f3}*{box-sizing:border-box}body{margin:0;padding:env(safe-area-inset-top) 0 calc(90px + env(safe-area-inset-bottom))}main{max-width:720px;margin:auto;padding:20px 16px}h1{font-size:26px;margin:8px 0 20px}h2{font-size:18px;margin:0 0 14px}.card{background:white;border-radius:20px;padding:20px;margin:0 0 16px;box-shadow:0 2px 12px #203b2410}.muted{color:#738074;font-size:13px}.summary{display:grid;grid-template-columns:1fr 1fr;gap:18px}.summary strong{display:block;font-size:22px;margin-top:8px;overflow-wrap:anywhere}.balance{border-top:1px solid #edf0e9;margin-top:18px;padding-top:18px;display:flex;justify-content:space-between;font-weight:700}.green{color:#527a62}.btn{border:0;border-radius:13px;padding:13px 16px;background:#527a62;color:white;font-size:16px;font-weight:600;cursor:pointer}.btn.alt{background:#edf3ec;color:#365b43}.btn.danger{background:#fceaea;color:#a13b3b}.btn:disabled{opacity:.45}.actions{display:flex;gap:10px;margin-bottom:16px}.actions .btn{flex:1}input,select,textarea{width:100%;font:inherit;border:1px solid #dfe7dc;border-radius:11px;background:#fafbf8;padding:11px;color:#25382c}textarea{min-height:90px}label{display:block;font-size:14px;font-weight:600;margin:12px 0 6px}.line{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #eff1ed}.line:last-child{border:0}.right{text-align:right}.small{font-size:12px;color:#7b857c}.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(12px);display:flex;padding:9px 5px calc(9px + env(safe-area-inset-bottom));border-top:1px solid #e7ece6;z-index:10}.tabs button{flex:1;border:0;background:none;color:#738074;font-size:13px;padding:7px 0}.tabs button.active{color:#527a62;font-weight:700}.hide{display:none!important}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bar{height:9px;background:#edf3ec;border-radius:8px;overflow:hidden;margin:7px 0}.bar>span{display:block;height:100%;background:#709a7d}.monthbars{display:flex;align-items:end;justify-content:space-between;height:180px;gap:9px}.monthcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:end;height:100%;gap:3px}.pair{display:flex;align-items:end;justify-content:center;gap:3px;width:100%;height:150px}.pair i{display:block;width:38%;border-radius:4px 4px 0 0;min-height:2px}.pair .inc{background:#6d9a77}.pair .exp{background:#e4aa79}.monthcol span{font-size:11px;color:#778}.pill{display:inline-block;padding:5px 10px;background:#eaf2e9;border-radius:20px;font-size:12px}.notice{padding:12px;border-radius:12px;background:#f0f5ee;color:#4b6854;font-size:13px;margin-bottom:14px}.full{width:100%}dialog{border:0;border-radius:20px;width:min(94vw,480px);max-height:88vh;overflow:auto;padding:20px}dialog::backdrop{background:#0006}dialog h2{margin-bottom:10px}dialog .actions{margin:20px 0 0}button.link{border:0;background:none;color:#527a62;font-size:14px;padding:7px;cursor:pointer}button{touch-action:manipulation}
-</style></head><body><main><h1 id="title">记账</h1><div id="home"><div class="card"><div class="muted">🌿 收支概览 · 人民币 CNY</div><div class="summary" style="margin-top:16px"><div><div class="muted">总收入</div><strong class="green" id="incomeAll">¥0.00</strong></div><div><div class="muted">总支出</div><strong id="expenseAll">¥0.00</strong></div></div><div class="balance"><span>当前结余</span><span class="green" id="balanceAll">¥0.00</span></div></div><div class="actions"><button class="btn" onclick="openEditor()">＋ 记一笔</button><button class="btn alt" onclick="showSmart()">✦ 智能记账</button></div><div class="card"><h2>账目明细</h2><div id="entryList"></div></div></div><div id="stats" class="hide"><div class="card"><h2>选择统计时间</h2><div class="grid2"><div><label>开始日期</label><input type="date" id="start" onchange="renderStats()"></div><div><label>结束日期</label><input type="date" id="end" onchange="renderStats()"></div></div></div><div class="card"><div class="line"><span>总收入</span><strong id="statIncome"></strong></div><div class="line"><span>总支出</span><strong id="statExpense"></strong></div><div class="line"><span>结余</span><strong id="statBalance"></strong></div><div class="muted" id="statCount" style="margin-top:10px"></div></div><div class="card"><h2>最近六个月收支趋势</h2><div class="muted">绿色：收入　橙色：支出（人民币）</div><div class="monthbars" id="monthChart"></div></div><div class="card"><h2>支出分类排行榜</h2><div id="categoryChart"></div></div></div><div id="rates" class="hide"><div class="notice">1 单位外币折合多少人民币。汇率可手动设置；新增账目时会记录当时的汇率。</div><div class="card"><h2>汇率设置</h2><div id="rateList"></div></div><button class="btn full" onclick="updateRates()">联网更新汇率</button><p class="muted">网络汇率来自第三方公开接口，仅供记账参考。</p></div><div id="settings" class="hide"><div class="card"><h2>分类管理</h2><div class="muted">用逗号分隔分类名称。删除分类不会删除历史账目。</div><label>支出分类</label><textarea id="expenseCats"></textarea><label>收入分类</label><textarea id="incomeCats"></textarea><button class="btn" style="margin-top:12px" onclick="saveCategories()">保存分类</button></div><div class="card"><h2>数据备份</h2><p class="muted">账目仅保存在当前设备的浏览器中，不会自动与 iPad 同步。请定期导出 JSON 备份。</p><div class="actions"><button class="btn alt" onclick="exportJSON()">导出 JSON</button><button class="btn alt" onclick="exportCSV()">导出 CSV</button></div><label>导入 JSON 备份</label><input type="file" accept=".json,application/json" id="importFile" onchange="importJSON(event)"><p class="muted">支持本网页版的备份，以及常见 SwiftUI 账本备份结构。导入前请先备份当前数据。</p></div><div class="card"><h2>使用提示</h2><p class="muted">首次联网打开后可添加到 iPhone 主屏幕。离线可记账；联网更新汇率需要网络。不要清除 Safari 网站数据，否则本地账目可能丢失。</p></div></div><div id="smart" class="hide"><div class="card"><h2>✦ 智能记账</h2><p class="muted">免费离线规则识别。支持“超市8磅，咖啡£3.5”“昨天坐地铁花了2.8英镑”。识别后请逐笔检查。</p><textarea id="smartText" placeholder="今天超市花了8磅，咖啡£3.5"></textarea><button class="btn full" style="margin-top:12px" onclick="parseSmart()">智能识别</button></div><div id="smartResults"></div></div></main><nav class="tabs"><button id="tab-home" class="active" onclick="tab('home')">⌂<div>明细</div></button><button id="tab-stats" onclick="tab('stats')">▥<div>统计</div></button><button id="tab-rates" onclick="tab('rates')">⇄<div>汇率</div></button><button id="tab-settings" onclick="tab('settings')">⚙<div>设置</div></button></nav><dialog id="editor"><h2 id="editorTitle">记一笔</h2><form id="entryForm" onsubmit="saveEntry(event)"><input type="hidden" id="editId"><div class="grid2"><div><label>类型</label><select id="type" onchange="updateCategorySelect()"><option value="expense">支出</option><option value="income">收入</option></select></div><div><label>货币</label><select id="currency" onchange="updateConverted()"></select></div></div><label>金额</label><input id="amount" type="number" inputmode="decimal" step="any" min="0.01" required oninput="updateConverted()"><div class="muted" id="converted" style="margin-top:7px"></div><label>分类</label><select id="category"></select><label>日期</label><input id="date" type="date" required><label>备注</label><textarea id="note" style="min-height:60px"></textarea><div class="actions"><button type="button" class="btn alt" onclick="document.getElementById('editor').close()">取消</button><button class="btn" type="submit">保存</button></div><button type="button" class="link" id="deleteBtn" onclick="deleteEntry()">删除这笔账目</button></form></dialog><script>
-const KEY='sage_ledger_pwa_v1',codes=['CNY','GBP','EUR','USD','JPY','HKD','KRW','SGD'];const names={CNY:'人民币',GBP:'英镑',EUR:'欧元',USD:'美元',JPY:'日元',HKD:'港币',KRW:'韩元',SGD:'新加坡元'};const defaults={entries:[],rates:{CNY:1,GBP:9.2,EUR:8,USD:7.2,JPY:.05,HKD:.92,KRW:.0053,SGD:5.4},categories:{expense:['超市','餐饮','饮品','服饰','交通','购物','住房','医疗','学习','旅行','其他'],income:['工资','奖学金','兼职','退款','其他收入']}};let db;try{db=JSON.parse(localStorage.getItem(KEY))||structuredClone(defaults)}catch{db=structuredClone(defaults)};function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('保存失败，请检查浏览器存储空间，并导出备份。')}}function money(n){return '¥'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function today(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}function dateKey(v){return String(v||'').slice(0,10)}function sum(list,type){return list.filter(e=>e.type===type).reduce((a,e)=>a+Number(e.amountCNY??(e.amount*e.rateToCNY)),0)}function tab(name){for(const n of ['home','stats','rates','settings','smart'])document.getElementById(n).classList.toggle('hide',n!==name);for(const n of ['home','stats','rates','settings'])document.getElementById('tab-'+n).classList.toggle('active',n===name);document.getElementById('title').textContent=({home:'记账',stats:'统计',rates:'汇率',settings:'设置',smart:'智能记账'})[name];render()}function render(){renderHome();renderStats();renderRates();renderSettings()}function renderHome(){document.getElementById('incomeAll').textContent=money(sum(db.entries,'income'));document.getElementById('expenseAll').textContent=money(sum(db.entries,'expense'));document.getElementById('balanceAll').textContent=money(sum(db.entries,'income')-sum(db.entries,'expense'));const el=document.getElementById('entryList');if(!db.entries.length){el.innerHTML='<p class="muted">还没有账目，点击「记一笔」开始。</p>';return}el.innerHTML=[...db.entries].sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(e=>`<div class="line" onclick="openEditor('${escapeHTML(e.id)}')"><div><strong>${escapeHTML(e.category)}</strong><div class="small">${escapeHTML(dateKey(e.date))}${e.note?' · '+escapeHTML(e.note):''}</div></div><div class="right"><strong>${e.type==='expense'?'-':'+'}${Number(e.amount).toFixed(2)} ${escapeHTML(e.currency)}</strong><div class="small">≈ ${money(e.amountCNY)}</div></div></div>`).join('')}
-function updateCategorySelect(selected){const el=document.getElementById('category');const list=db.categories[document.getElementById('type').value]||[];el.innerHTML=list.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');if(selected&&list.includes(selected))el.value=selected}function updateConverted(){const a=Number(document.getElementById('amount').value)||0,c=document.getElementById('currency').value;document.getElementById('converted').textContent='约 '+money(a*(db.rates[c]||1))}function openEditor(id){const e=db.entries.find(x=>x.id===id);document.getElementById('editId').value=e?.id||'';document.getElementById('editorTitle').textContent=e?'编辑账目':'记一笔';document.getElementById('type').value=e?.type||'expense';document.getElementById('currency').innerHTML=codes.map(c=>`<option value="${c}">${c} · ${names[c]}</option>`).join('');document.getElementById('currency').value=e?.currency||'GBP';document.getElementById('amount').value=e?.amount??'';document.getElementById('date').value=dateKey(e?.date)||today();document.getElementById('note').value=e?.note||'';updateCategorySelect(e?.category);updateConverted();document.getElementById('deleteBtn').style.display=e?'inline-block':'none';document.getElementById('editor').showModal()}function saveEntry(ev){ev.preventDefault();const id=document.getElementById('editId').value;const amount=Number(document.getElementById('amount').value),currency=document.getElementById('currency').value,rate=Number(db.rates[currency]);if(!Number.isFinite(amount)||amount<=0||!Number.isFinite(rate)||rate<=0){alert('请填写有效金额和汇率');return}const old=db.entries.find(x=>x.id===id);const e={id:id||crypto.randomUUID(),type:document.getElementById('type').value,amount,currency,rateToCNY:old&&old.currency===currency?Number(old.rateToCNY):rate,category:document.getElementById('category').value,date:document.getElementById('date').value,note:document.getElementById('note').value};e.amountCNY=e.amount*e.rateToCNY;if(old)db.entries[db.entries.indexOf(old)]=e;else db.entries.push(e);persist();document.getElementById('editor').close();render()}function deleteEntry(){const id=document.getElementById('editId').value;if(!confirm('确定删除这笔账目？'))return;db.entries=db.entries.filter(e=>e.id!==id);persist();document.getElementById('editor').close();render()}
-function renderStats(){const s=document.getElementById('start').value,e=document.getElementById('end').value;if(!s||!e)return;const list=s<=e?db.entries.filter(x=>dateKey(x.date)>=s&&dateKey(x.date)<=e):[];document.getElementById('statIncome').textContent=money(sum(list,'income'));document.getElementById('statExpense').textContent=money(sum(list,'expense'));document.getElementById('statBalance').textContent=money(sum(list,'income')-sum(list,'expense'));document.getElementById('statCount').textContent=s>e?'开始日期不能晚于结束日期':'共 '+list.length+' 笔账目';const monthData=[];const now=new Date();for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),m=db.entries.filter(x=>dateKey(x.date).startsWith(k));monthData.push({label:(d.getMonth()+1)+'月',inc:sum(m,'income'),exp:sum(m,'expense')})}const max=Math.max(1,...monthData.flatMap(x=>[x.inc,x.exp]));document.getElementById('monthChart').innerHTML=monthData.map(m=>`<div class="monthcol"><div class="pair"><i class="inc" style="height:${Math.max(2,m.inc/max*145)}px" title="收入 ${money(m.inc)}"></i><i class="exp" style="height:${Math.max(2,m.exp/max*145)}px" title="支出 ${money(m.exp)}"></i></div><span>${m.label}</span></div>`).join('');const groups={};for(const x of list.filter(x=>x.type==='expense'))groups[x.category]=(groups[x.category]||0)+Number(x.amountCNY);const sorted=Object.entries(groups).sort((a,b)=>b[1]-a[1]),total=sorted.reduce((a,x)=>a+x[1],0);document.getElementById('categoryChart').innerHTML=sorted.length?sorted.map(([n,v],i)=>`<div style="margin:14px 0"><div class="line" style="padding:4px 0"><span>${i+1}. ${escapeHTML(n)}</span><strong>${money(v)}</strong></div><div class="bar"><span style="width:${v/total*100}%"></span></div><div class="small right">${(v/total*100).toFixed(1)}%</div></div>`).join(''):'<p class="muted">当前时间范围内暂无支出</p>'}
-function renderRates(){document.getElementById('rateList').innerHTML=codes.map(c=>`<div class="line"><div><strong>${names[c]}</strong><div class="small">${c}</div></div><div style="width:145px"><input aria-label="${c} 汇率" type="number" step="any" min="0.000001" ${c==='CNY'?'disabled':''} value="${db.rates[c]}" onchange="setRate('${c}',this.value)"></div></div>`).join('')}function setRate(c,v){const n=Number(v);if(!Number.isFinite(n)||n<=0){alert('汇率必须大于零');renderRates();return}db.rates[c]=n;persist();renderRates()}async function updateRates(){try{const r=await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/cny.json',{cache:'no-store'});if(!r.ok)throw Error('网络请求失败');const j=await r.json();if(!j.cny)throw Error('汇率数据无效');for(const c of codes){if(c==='CNY')continue;const n=Number(j.cny[c.toLowerCase()]);if(n>0)db.rates[c]=1/n}persist();renderRates();alert('汇率已更新，日期：'+(j.date||'未知'))}catch(e){alert('更新失败：'+e.message+'。可以继续手动设置。')}}function renderSettings(){document.getElementById('expenseCats').value=db.categories.expense.join('，');document.getElementById('incomeCats').value=db.categories.income.join('，')}function saveCategories(){for(const type of ['expense','income']){const text=document.getElementById(type==='expense'?'expenseCats':'incomeCats').value;const names=[...new Set(text.split(/[,，\n]/).map(x=>x.trim()).filter(Boolean))];if(!names.length){alert('每种收支类型至少保留一个分类');return}db.categories[type]=names}persist();alert('分类已保存')}
-function download(name,content,mime){const blob=new Blob([content],{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}function exportJSON(){download('记账备份-'+today()+'.json',JSON.stringify({version:1,createdAt:new Date().toISOString(),entries:db.entries,rates:db.rates,expenseCategories:db.categories.expense,incomeCategories:db.categories.income,categories:db.categories},null,2),'application/json')}function exportCSV(){const rows=[['类型','金额','货币','人民币汇率','人民币金额','分类','日期','备注'],...db.entries.map(e=>[e.type,e.amount,e.currency,e.rateToCNY,e.amountCNY,e.category,dateKey(e.date),e.note])];download('记账明细-'+today()+'.csv','\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),'text/csv;charset=utf-8')}
-function parseImported(data){if(!data||!Array.isArray(data.entries))throw Error('没有找到 entries 账目数组');const list=data.entries.map(e=>{const type=String(e.type).toLowerCase().includes('income')?'income':'expense',amount=Number(e.amount),currency=String(e.currency||'CNY').toUpperCase(),rate=Number(e.rateToCNY??e.exchangeRate??data.rates?.[currency]??db.rates[currency]??1);if(!Number.isFinite(amount)||amount<=0||!Number.isFinite(rate)||rate<=0||!codes.includes(currency))throw Error('有账目金额、币种或汇率不合法');return {id:String(e.id||crypto.randomUUID()),type,amount,currency,rateToCNY:rate,amountCNY:amount*rate,category:String(e.category||'其他'),date:dateKey(e.date)||today(),note:String(e.note||'')}});const next=structuredClone(db);next.entries=list;if(data.rates&&typeof data.rates==='object'){for(const c of codes){const n=Number(data.rates[c]);if(n>0&&Number.isFinite(n))next.rates[c]=n}}const cats=data.categories;if(cats&&Array.isArray(cats.expense)&&Array.isArray(cats.income)){for(const t of ['expense','income']){const names=cats[t].map(x=>typeof x==='string'?x:x.name).filter(Boolean);if(names.length)next.categories[t]=names}}else if(Array.isArray(cats)){for(const t of ['expense','income']){const names=cats.filter(x=>String(x.type).toLowerCase().includes(t)).map(x=>x.name).filter(Boolean);if(names.length)next.categories[t]=names}}else{for(const t of ['expense','income']){const arr=data[t+'Categories'];if(Array.isArray(arr)){const names=arr.map(x=>typeof x==='string'?x:x.name).filter(Boolean);if(names.length)next.categories[t]=names}}}for(const t of ['expense','income'])for(const e of list.filter(x=>x.type===t))if(!next.categories[t].includes(e.category))next.categories[t].push(e.category);return next}
-async function importJSON(ev){const f=ev.target.files?.[0];if(!f)return;try{const parsed=JSON.parse(await f.text());const next=parseImported(parsed);if(!confirm('将用导入文件中的 '+next.entries.length+' 笔账目替换当前全部账目。请确认已备份当前数据。继续吗？'))return;db=next;persist();render();alert('导入完成，共 '+db.entries.length+' 笔')}catch(e){alert('导入失败：'+e.message+'。原有数据未更改。')}finally{ev.target.value=''}}
-function showSmart(){tab('smart');document.getElementById('smartResults').innerHTML=''}function smartDate(text){let d=new Date();if(text.includes('前天'))d.setDate(d.getDate()-2);else if(text.includes('昨天'))d.setDate(d.getDate()-1);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}function parseSmart(){const text=document.getElementById('smartText').value;const chunks=text.split(/[，,。；;\n]/).map(x=>x.trim()).filter(Boolean),drafts=[];for(const part of chunks){const re=/(£|€|\$|¥)?\s*(\d+(?:\.\d+)?)\s*(英镑|人民币|美元|欧元|港币|日元|韩元|新加坡元|磅|块钱|块|元|GBP|CNY|USD|EUR|HKD|JPY|KRW|SGD)?/i;const m=part.match(re);if(!m||(!m[1]&&!m[3]))continue;const cword=(m[3]||m[1]).toUpperCase(),curr=({'£':'GBP','英镑':'GBP','磅':'GBP','€':'EUR','欧元':'EUR','$':'USD','美元':'USD','¥':'CNY','人民币':'CNY','元':'CNY','块':'CNY','块钱':'CNY','港币':'HKD','日元':'JPY','韩元':'KRW','新加坡元':'SGD'})[cword]||cword;const type=/工资|收入|奖学金|收到|退款|报销|赚了/.test(part)?'income':'expense';const rules=[['超市',/超市|tesco|aldi|lidl|sainsbury/i],['餐饮',/吃饭|餐厅|外卖|早餐|午饭|晚饭/],['饮品',/咖啡|奶茶|饮料/],['服饰',/衣服|外套|鞋子|裤子/],['交通',/地铁|公交|打车|车票|火车/],['住房',/房租|水电/],['医疗',/医院|看病|买药/],['旅行',/旅行|旅游|酒店|机票/],['工资',/工资/],['奖学金',/奖学金/],['退款',/退款|报销/]];let category=db.categories[type].find(x=>part.includes(x));if(!category)category=rules.find(([n,re])=>re.test(part)&&db.categories[type].includes(n))?.[0]||db.categories[type][0];drafts.push({id:crypto.randomUUID(),type,amount:Number(m[2]),currency:codes.includes(curr)?curr:'CNY',category,date:smartDate(part),note:part})}const root=document.getElementById('smartResults');if(!drafts.length){root.innerHTML='<div class="card muted">没有识别出账目，请尝试写明金额和币种。</div>';return}window.smartDrafts=drafts;root.innerHTML=drafts.map((d,i)=>`<div class="card"><h2>第 ${i+1} 笔</h2><div class="grid2"><div><label>类型</label><select onchange="smartChange(${i},'type',this.value)"><option value="expense" ${d.type==='expense'?'selected':''}>支出</option><option value="income" ${d.type==='income'?'selected':''}>收入</option></select></div><div><label>货币</label><select onchange="smartChange(${i},'currency',this.value)">${codes.map(c=>`<option ${c===d.currency?'selected':''}>${c}</option>`).join('')}</select></div></div><label>金额</label><input type="number" step="any" min="0.01" value="${d.amount}" onchange="smartChange(${i},'amount',this.value)"><label>分类</label><select id="smartcat${i}" onchange="smartChange(${i},'category',this.value)">${db.categories[d.type].map(c=>`<option ${c===d.category?'selected':''}>${escapeHTML(c)}</option>`).join('')}</select><label>日期</label><input type="date" value="${d.date}" onchange="smartChange(${i},'date',this.value)"><label>备注</label><input value="${escapeHTML(d.note)}" onchange="smartChange(${i},'note',this.value)"><button class="link" onclick="smartRemove(${i})">删除这笔草稿</button></div>`).join('')+'<button class="btn full" onclick="saveSmart()">确认并保存 '+drafts.length+' 笔</button>'}function smartChange(i,k,v){const d=window.smartDrafts?.[i];if(!d)return;d[k]=k==='amount'?Number(v):v;if(k==='type'){d.category=db.categories[v][0];const sel=document.getElementById('smartcat'+i);sel.innerHTML=db.categories[v].map(c=>`<option>${escapeHTML(c)}</option>`).join('')}}function smartRemove(i){window.smartDrafts.splice(i,1);const text=document.getElementById('smartText').value;parseSmart();window.smartDrafts.splice(i,1);const root=document.getElementById('smartResults');root.innerHTML='<div class="card muted">已移除草稿。请重新点击智能识别以继续编辑剩余账目。</div>'}function saveSmart(){const drafts=window.smartDrafts||[];if(!drafts.length)return;for(const d of drafts){if(!Number.isFinite(d.amount)||d.amount<=0||!db.categories[d.type]?.includes(d.category)||!codes.includes(d.currency)){alert('请检查金额、币种和分类');return}}for(const d of drafts){const rate=db.rates[d.currency];db.entries.push({...d,rateToCNY:rate,amountCNY:d.amount*rate})}persist();window.smartDrafts=[];document.getElementById('smartText').value='';tab('home');alert('已保存 '+drafts.length+' 笔账目')}
-(function init(){const now=new Date();document.getElementById('end').value=today();const before=new Date(now);before.setMonth(before.getMonth()-1);document.getElementById('start').value=[before.getFullYear(),String(before.getMonth()+1).padStart(2,'0'),String(before.getDate()).padStart(2,'0')].join('-');render();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{})})();
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#527a62">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="记账">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.png">
+<title>记账</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+<div id="storageNotice" class="notice hide" role="alert">
+</div>
+<h1 id="title">记账</h1>
+<div id="home">
+<div class="card">
+<div class="muted">🌿 收支概览 · 人民币 CNY</div>
+<div class="summary" style="margin-top:16px">
+<div>
+<div class="muted">总收入</div>
+<strong class="green" id="incomeAll">¥0.00</strong>
+</div>
+<div>
+<div class="muted">总支出</div>
+<strong id="expenseAll">¥0.00</strong>
+</div>
+</div>
+<div class="balance">
+<span>当前结余</span>
+<span class="green" id="balanceAll">¥0.00</span>
+</div>
+</div>
+<div class="actions">
+<button class="btn" onclick="openEditor()">＋ 记一笔</button>
+<button class="btn alt" onclick="showSmart()">✦ 智能记账</button>
+</div>
+<div class="card">
+<h2>账目明细</h2>
+<div id="entryList">
+</div>
+</div>
+</div>
+<div id="stats" class="hide">
+<div class="card">
+<h2>选择统计时间</h2>
+<label for="statCurrency">合计显示货币</label>
+<select id="statCurrency" onchange="setStatCurrency(this.value)">
+</select>
+<div class="grid2">
+<div>
+<label>开始日期</label>
+<input type="date" id="start" onchange="renderStats()">
+</div>
+<div>
+<label>结束日期</label>
+<input type="date" id="end" onchange="renderStats()">
+</div>
+</div>
+</div>
+<div class="card">
+<h2>原币收支</h2>
+<div id="nativeTotals">
+</div>
+</div>
+<div class="card">
+<h2>折算合计</h2>
+<p class="muted" id="statRateNote">
+</p>
+<button class="link" onclick="refreshDisplayRates()">按当前汇率重新估值</button>
+<div class="line">
+<span>总收入</span>
+<strong id="statIncome">
+</strong>
+</div>
+<div class="line">
+<span>总支出</span>
+<strong id="statExpense">
+</strong>
+</div>
+<div class="line">
+<span>结余</span>
+<strong id="statBalance">
+</strong>
+</div>
+<div class="muted" id="statCount" style="margin-top:10px">
+</div>
+</div>
+<div class="card">
+<h2>截至结束日期的六个月趋势</h2>
+<div class="muted" id="trendLegend">
+</div>
+<div class="monthbars" id="monthChart">
+</div>
+</div>
+<div class="card">
+<h2>支出分类排行榜</h2>
+<div id="categoryChart">
+</div>
+</div>
+</div>
+<div id="rates" class="hide">
+<div class="notice">1 单位外币折合多少人民币。汇率可手动设置；新增账目时会记录当时的汇率。</div>
+<div class="card">
+<h2>汇率设置</h2>
+<div id="rateList">
+</div>
+</div>
+<button class="btn full" onclick="updateRates()">联网更新汇率</button>
+<p class="muted">网络汇率来自第三方公开接口，仅供记账参考。</p>
+</div>
+<div id="settings" class="hide">
+<div class="card">
+<h2>分类管理</h2>
+<p class="muted">分类表示买了什么，商家表示在哪里买的。修改名称不会重写历史账目。</p>
+<div class="actions">
+<button class="btn alt" onclick="categoryType='expense';renderSettings()">支出分类</button>
+<button class="btn alt" onclick="categoryType='income';renderSettings()">收入分类</button>
+</div>
+<div id="categoryList">
+</div>
+<button class="btn full alt" onclick="openCategory()">＋ 新增分类</button>
+</div>
+<div class="card">
+<h2>✦ AI 连接</h2>
+<p class="muted">默认使用离线识别。配置安全代理后，仅主动提交的文字会发送给智谱，不上传历史账本。</p>
+<label for="aiURL">安全代理地址（HTTPS）</label>
+<input id="aiURL" type="url" placeholder="https://your-worker.workers.dev/parse">
+<label for="aiToken">个人访问口令（不是智谱 API Key）</label>
+<input id="aiToken" type="password" autocomplete="off" placeholder="由你设置的随机访问口令">
+<p class="small">口令仅在本次打开期间使用，关闭后需重新填写。</p>
+<button class="btn alt" onclick="saveAIConfig()">保存连接设置</button>
+</div>
+<div class="card">
+<h2>数据备份</h2>
+<p class="muted">账目仅保存在当前设备的浏览器中，不会自动与 iPad 同步。请定期导出 JSON 备份。</p>
+<div class="actions">
+<button class="btn alt" onclick="exportJSON()">导出 JSON</button>
+<button class="btn alt" onclick="exportCSV()">导出 CSV</button>
+</div>
+<label>导入 JSON 备份</label>
+<input type="file" accept=".json,application/json" id="importFile" onchange="importJSON(event)">
+<p class="muted">支持本网页版的备份，以及常见 SwiftUI 账本备份结构。导入前请先备份当前数据。</p>
+</div>
+<div class="card">
+<h2>使用提示</h2>
+<p class="muted">首次联网打开后可添加到 iPhone 主屏幕。离线可记账；联网更新汇率需要网络。不要清除 Safari 网站数据，否则本地账目可能丢失。</p>
+</div>
+</div>
+<div id="smart" class="hide">
+<div class="card">
+<h2>✦ 智能记账</h2>
+<p class="muted">一次输入多笔消费，先识别，再逐笔核对。标记不确定的草稿需勾选确认后才能保存。</p>
+<textarea id="smartText" placeholder="今天超市花了8磅，咖啡£3.5">
+</textarea>
+<div class="actions" style="margin-top:12px">
+<button class="btn alt" onclick="parseSmart()">离线识别</button>
+<button id="aiButton" class="btn" onclick="parseWithAI()">✦ AI 识别</button>
+</div>
+<p class="small" id="smartStatus" role="status">
+</p>
+</div>
+<div id="smartResults">
+</div>
+</div>
+</main>
+<dialog id="categoryEditor">
+<h2>编辑分类</h2>
+<form onsubmit="saveCategory(event)">
+<label for="catName">名称</label>
+<input id="catName" maxlength="24" required>
+<label for="catIcon">图标（表情）</label>
+<input id="catIcon" maxlength="16" required>
+<div class="actions">
+<button type="button" class="btn alt" onclick="document.getElementById('categoryEditor').close()">取消</button>
+<button class="btn">保存</button>
+</div>
+</form>
+</dialog>
+<nav class="tabs">
+<button id="tab-home" class="active" onclick="tab('home')">⌂<div>明细</div>
+</button>
+<button id="tab-stats" onclick="tab('stats')">▥<div>统计</div>
+</button>
+<button id="tab-rates" onclick="tab('rates')">⇄<div>汇率</div>
+</button>
+<button id="tab-settings" onclick="tab('settings')">⚙<div>设置</div>
+</button>
+</nav>
+<dialog id="editor">
+<h2 id="editorTitle">记一笔</h2>
+<form id="entryForm" onsubmit="saveEntry(event)">
+<input type="hidden" id="editId">
+<div class="grid2">
+<div>
+<label>类型</label>
+<select id="type" onchange="updateCategorySelect()">
+<option value="expense">支出</option>
+<option value="income">收入</option>
+</select>
+</div>
+<div>
+<label>货币</label>
+<select id="currency" onchange="updateConverted()">
+</select>
+</div>
+</div>
+<label>金额</label>
+<input id="amount" type="number" inputmode="decimal" step="any" min="0.01" required oninput="updateConverted()">
+<div class="muted" id="converted" style="margin-top:7px">
+</div>
+<label>分类</label>
+<input id="category" type="hidden">
+<div id="categoryPicker" class="category-picker">
+</div>
+<label>日期</label>
+<input id="date" type="date" required>
+<label for="merchant">商家 / 平台 · 可选</label>
+<input id="merchant" list="merchants" maxlength="100" placeholder="例如 SHEIN、Tesco">
+<datalist id="merchants">
+</datalist>
+<label>备注</label>
+<textarea id="note" style="min-height:60px">
+</textarea>
+<div class="actions">
+<button type="button" class="btn alt" onclick="document.getElementById('editor').close()">取消</button>
+<button class="btn" type="submit">保存</button>
+</div>
+<button type="button" class="link" id="deleteBtn" onclick="deleteEntry()">删除这笔账目</button>
+</form>
+</dialog>
+<script src="core.js">
+</script>
+<script src="app.js">
+</script>
+</body>
+</html>
